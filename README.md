@@ -17,13 +17,16 @@ Roadmap práctico hacia **AI Infrastructure Engineer** con foco en orquestación
 
 ## Estado del roadmap
 
+Plan completo, orden de labs y certificaciones: **[ROADMAP.md](ROADMAP.md)**
+
 | Fase | Contenido | Estado |
 |---|---|---|
 | **Fase 0** — Fundamentos de hardware | VRAM, Tensor Cores, HBM, cuantización | ✅ Completa |
 | **Certificación** | NVIDIA NCA-AIIO | ✅ Aprobada |
-| **Fase 1** — Orquestación y monitoreo | Device plugin, Time-Slicing, MPS, DCGM (home lab) · MIG solo teoría (requiere A100/H100) · Karpenter queda para la fase en EKS | 🟡 Casi completa |
-| **Fase 2** — Inferencia cloud native | vLLM, KServe, KubeRay, Argo Workflows, MinIO | ⏳ Pendiente |
-| **Certificaciones finales** | AWS SA/DevOps Professional, CNCF Cloud Native AI | ⏳ Pendiente |
+| **Fase 1** — Orquestación y monitoreo | Device plugin, Time-Slicing, MPS, DCGM (home lab) · MIG solo teoría (requiere A100/H100) · Karpenter pasa a la Fase 3 | ✅ Completa (home lab) |
+| **Fase 2** — Inferencia cloud native (home lab) | vLLM, observabilidad de inferencia, KServe, AI gateway, Argo Workflows + MinIO | ⏳ Siguiente |
+| **Fase 3** — EKS | Terraform + Karpenter con GPU, benchmark en A10G, tensor parallelism, disaggregated serving (teoría) | ⏳ Pendiente |
+| **En paralelo** | Go · AWS DevOps Engineer – Professional → Solutions Architect – Professional | ⏳ Pendiente |
 
 ## Labs
 
@@ -35,6 +38,10 @@ Roadmap práctico hacia **AI Infrastructure Engineer** con foco en orquestación
 | [Lab 3](labs/lab-03-dcgm/) | DCGM + Prometheus + Grafana | ✅ |
 | [Lab 4](labs/lab-04-helm-mps/) | Device plugin por Helm + GFD/NFD + MPS | ✅ |
 | Lab 5 | vLLM local + benchmark (TTFT, TPOT, concurrencia vs KV cache) | ⏳ Siguiente |
+| Lab 6 | vLLM en Kubernetes + observabilidad de inferencia | ⏳ |
+| Lab 7 | KServe | ⏳ |
+| Lab 8 | AI gateway (Gateway API Inference Extension) | ⏳ |
+| Lab 9 | Argo Workflows + MinIO | ⏳ |
 
 ## Teoría
 
@@ -71,6 +78,7 @@ EKS · instancias GPU (g5/g6/p4d/p5) · Karpenter · FSx for Lustre · EFA · Mi
 
 ## Próximos pasos
 
-1. **Lab 5 — vLLM local** con `--dtype=half --max-model-len=1024 --gpu-memory-utilization=0.85 --enforce-eager`, midiendo TTFT, TPOT y throughput cambiando una variable a la vez
-2. Opcional: prueba de cómputo con MPS (`active thread` 50 % con `burn`)
-3. Go (fundamentos) y Terraform para EKS + Karpenter
+1. **Preparar la GPU para vLLM:** pasar de MPS `replicas: 2` a Time-Slicing o MPS `replicas: 1`
+2. **Lab 5 — vLLM local** con `--dtype=half --max-model-len=1024 --gpu-memory-utilization=0.85 --enforce-eager`, midiendo TTFT, TPOT y throughput cambiando una variable a la vez
+3. Labs 6–9 de la Fase 2, luego Fase 3 en EKS (detalle en [ROADMAP.md](ROADMAP.md))
+4. En paralelo: Go y preparación de AWS DevOps Engineer – Professional

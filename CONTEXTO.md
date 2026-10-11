@@ -23,7 +23,8 @@ GTX 1650 SUPER (TU116, SM 7.5, 4 GB GDDR6, 20 SMs, sin Tensor Cores, sin MIG, Ge
 NVIDIA Container Toolkit 1.19.1 · k3s v1.36.2+k3s1 · device plugin 0.17.1 por Helm (release `nvdp`, ns `nvidia-device-plugin`) + GFD/NFD.
 
 ## Estado
-- Fase 0 ✅ · NCA-AIIO ✅ · Fase 1 casi completa · Fase 2 pendiente.
+- Fase 0 ✅ · NCA-AIIO ✅ · Fase 1 ✅ (home lab; MIG solo teoría, Karpenter → Fase 3) · Fase 2 siguiente ·
+  Fase 3 (EKS) pendiente. Plan completo en `ROADMAP.md`.
 - Lab 0 host ✅ · Lab 1 Docker+GPU ✅ · Lab 2 k3s+Time-Slicing ✅ · Lab 3 DCGM ✅ ·
   Lab 4 Helm+GFD/NFD+MPS ✅ · Lab 5 vLLM ⏳.
 - Cluster: device plugin por Helm con **MPS `replicas: 2`** (antes Time-Slicing `replicas: 4`; backup del
@@ -66,11 +67,22 @@ NVIDIA Container Toolkit 1.19.1 · k3s v1.36.2+k3s1 · device plugin 0.17.1 por 
 - GPU Operator no recomendado en EKS (las AMIs ya traen driver y toolkit).
 
 ## Próximos pasos
-1. Lab 5: vLLM local (`--dtype=half --max-model-len=1024 --gpu-memory-utilization=0.85 --enforce-eager`)
+1. Antes del Lab 5: pasar de MPS `replicas: 2` a Time-Slicing o MPS `replicas: 1` (vLLM necesita la GPU completa).
+2. Lab 5: vLLM local (`--dtype=half --max-model-len=1024 --gpu-memory-utilization=0.85 --enforce-eager`)
    como benchmark: TTFT, TPOT, throughput y concurrencia vs KV cache, cambiando una variable a la vez.
-2. Opcional: prueba de cómputo con MPS (`active thread` 50% con `burn`).
-3. Agregar a Fase 2: prefill/decode, métricas de inferencia, paralelismo (tensor/pipeline/expert),
-   disaggregated serving (llm-d), Gateway API Inference Extension.
+   Teoría previa: prefill vs decode, crecimiento del KV cache.
+3. Opcional: prueba de cómputo con MPS (`active thread` 50% con `burn`).
+
+## Roadmap (detalle en `ROADMAP.md`)
+- **Fase 2 (home lab):** Lab 5 vLLM local · Lab 6 vLLM en k8s + observabilidad de inferencia (métricas
+  de vLLM en Grafana) · Lab 7 KServe · Lab 8 AI gateway (Gateway API Inference Extension) ·
+  Lab 9 Argo Workflows + MinIO · KubeRay solo teoría o prueba corta.
+- **Fase 3 (EKS):** Terraform EKS + Karpenter con NodePools GPU (g5/g6) · benchmark del Lab 5 en A10G
+  (24 GB) con costo por token · tensor parallelism en g5.12xlarge · disaggregated serving (llm-d) teoría.
+  Regla de costo: spot, sesiones cortas, `terraform destroy`.
+- **En paralelo:** Go (exporter o controlador pequeño) · AWS DevOps Engineer – Professional (con Fase 3)
+  → Solutions Architect – Professional (al cerrar Fase 3) · ML Engineer – Associate opcional ·
+  GenAI Developer – Professional no por ahora (Bedrock, no infra). ML Specialty retirada (31 mar 2026).
 
 ## Lecturas
 1. *GPU-Enabled Platforms on Kubernetes* (vcluster.com) — consolidar Fase 1.
