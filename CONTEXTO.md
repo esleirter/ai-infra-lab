@@ -30,6 +30,8 @@ NVIDIA Container Toolkit 1.19.1 · k3s v1.36.2+k3s1 · device plugin 0.17.1 por 
   manifiesto crudo en `labs/lab-02-k3s-gpu/manifests/backup/`), GFD/NFD activos, dcgm-exporter +
   kube-prometheus-stack (`monitoring`), Grafana NodePort 30300, dashboard 12239.
 - Con MPS activo, CUDA fuera de k8s (`docker run --gpus all`) probablemente falle (modo `E. Process`).
+- Runtime por defecto de containerd sigue siendo `runc` (no existe `config.toml.tmpl`, verificado 11 oct):
+  decisión consciente, todo pod GPU declara `runtimeClassName: nvidia`.
 
 ## Hallazgos clave (medidos)
 1. TinyLlama-1.1B FP16 = 2.20 GB allocated; contexto CUDA ~54 MB; FP32 → OOM.

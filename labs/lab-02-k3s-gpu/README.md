@@ -107,7 +107,10 @@ sudo sed -i 's/default_runtime_name = "runc"/default_runtime_name = "nvidia"/' \
         /var/lib/rancher/k3s/agent/etc/containerd/config.toml.tmpl
 sudo systemctl restart k3s
 ```
-> TODO: confirmar si se aplicó (`ls /var/lib/rancher/k3s/agent/etc/containerd/`).
+**Verificado el 11 de octubre de 2026: nunca se aplicó.** No existe `config.toml.tmpl` (solo
+`config.toml`, regenerado ese día al arrancar k3s) y `grep default_runtime` en `config.toml` no devuelve
+nada: containerd usa su default, `runc`. Por eso todos los pods GPU, incluido el device plugin, declaran
+`runtimeClassName: nvidia`. Es una decisión consciente: los pods sin GPU no pasan por el runtime de NVIDIA.
 
 ---
 
@@ -158,7 +161,9 @@ ConfigMap por API y nunca monta el archivo.
 - `hog-2` murió con `CUDA out of memory`, reportando `total capacity of 3.63 GiB` y viendo el proceso
   del otro pod.
 
-> TODO: exportar `hog-1.yaml` y `hog-2.yaml` reales a `manifests/`.
+Manifiestos: [`manifests/hog-1.yaml`](manifests/hog-1.yaml) y [`manifests/hog-2.yaml`](manifests/hog-2.yaml)
+(idénticos salvo el nombre; reservan 2.2 GB con `torch.empty` en float16). El
+[`hog.yaml` del Lab 4](../lab-04-helm-mps/hog.yaml) es el mismo pod, parametrizable con la variable `GB`.
 
 ### Conclusión
 Time-Slicing reparte **tiempo de cómputo, no memoria**. Kubernetes contó recursos que no existen y el

@@ -45,7 +45,11 @@ El lab cambió de eje, no de valor: en vez de *GPU-Util vs SM occupancy*, quedó
 - **ServiceMonitor con `interval: 5s`:** con el default de 30 s, las cargas cortas de inferencia se
   promedian a nada.
 
-> TODO: exportar a `manifests/` el DaemonSet, Service y ServiceMonitor reales, y los values de Helm.
+Manifiestos: [`manifests/dcgm-exporter.yaml`](manifests/dcgm-exporter.yaml) (DaemonSet + Service),
+[`manifests/dcgm-servicemonitor.yaml`](manifests/dcgm-servicemonitor.yaml) y
+[`manifests/values-kube-prometheus-stack.yaml`](manifests/values-kube-prometheus-stack.yaml) (values del
+release `prom`: Grafana NodePort 30300 y `serviceMonitorSelectorNilUsesHelmValues: false` para que
+Prometheus recoja ServiceMonitors ajenos al chart).
 
 ## 3. Experimento: utilización vs memoria
 - `hog-1`: reserva 2.20 GB y duerme.
@@ -57,7 +61,10 @@ El lab cambió de eje, no de valor: en vez de *GPU-Util vs SM occupancy*, quedó
 | burn | 2.71 GB | 100% | **40.7 W** | 1.92 GHz |
 | Reposo (memoria ocupada, sin trabajo) | — | — | 20.2 W | 1.20 GHz |
 
-> TODO: agregar `burn.yaml` y capturas del dashboard.
+Manifiesto: [`manifests/burn.yaml`](manifests/burn.yaml) (matmul 4096×4096 FP16 en bucle con
+`torch.cuda.synchronize()`).
+
+> TODO: agregar capturas del dashboard.
 
 ## 4. Desvío de debugging: Grafana mentía
 Parecía que las métricas no llegaban a Prometheus. La causa era el **caché del autocompletado de

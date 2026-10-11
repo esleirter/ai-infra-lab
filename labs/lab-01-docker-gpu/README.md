@@ -31,7 +31,14 @@ Predicción: 1.1B parámetros × 2 bytes (FP16) ≈ **2.2 GB**.
 ### 4. TinyLlama en FP32
 1.1B × 4 bytes ≈ 4.4 GB > 4 GB disponibles → **OOM**, como se esperaba.
 
-> TODO: agregar el script Python usado para cargar el modelo y medir.
+El modelo se cargó de forma interactiva dentro del contenedor, con el caché de Hugging Face montado:
+```bash
+docker run --rm --gpus all -it \
+  -v ~/.cache/huggingface:/root/.cache/huggingface \
+  pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime bash
+```
+> TODO: el script Python no se guardó (se escribió dentro del contenedor); reescribirlo en `scripts/`
+> cuando se repita la medición.
 
 ## GPU-Util durante la generación
 - Marcaba ~98%, no 100%: el overhead de Python entre llamadas a `generate()` deja huecos sin kernel.

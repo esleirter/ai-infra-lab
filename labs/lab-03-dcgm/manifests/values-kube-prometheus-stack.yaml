@@ -1,0 +1,8 @@
+# helm get values prom -n monitoring (release kube-prometheus-stack 88.5.3)
+grafana:
+  service:
+    nodePort: 30300
+    type: NodePort
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
