@@ -46,7 +46,7 @@
 | Forma de compartir | Tiempo | Espacio (SMs concurrentes) | Partición física |
 | Aislamiento de VRAM | No | Tope por cliente (máximo, no garantía) | Sí |
 | Cambio de contexto | Sí | No | No aplica |
-| Flexibilidad | Alta | Alta | Baja (estático) |
+| Flexibilidad | Alta | Media (topes fijos por réplica) | Baja (estático) |
 | Hardware | Cualquiera | Cualquiera compatible | Datacenter |
 
 ## Combinación

@@ -6,6 +6,13 @@ Roadmap práctico hacia **AI Infrastructure Engineer** con foco en orquestación
 
 **Perfil:** Infrastructure/Platform Engineer · CNCF Kubestronaut · AWS SysOps · NVIDIA NCA-AIIO
 
+## Hallazgos destacados
+
+- **Time-Slicing no aísla VRAM:** Kubernetes admitió 2 pods de 2.2 GB en una GPU de 4 GB y el segundo murió por OOM → [Lab 2](labs/lab-02-k3s-gpu/)
+- **Los topes de MPS se calculan sobre 4096 MiB nominales, pero CUDA ve 3.63 GiB:** dos pods dentro de su tope pueden fallar igual → [Lab 4](labs/lab-04-helm-mps/)
+- **Sin métricas de profiling en GeForce, la potencia es el proxy honesto:** 20 W → 41 W bajo carga real → [Lab 3](labs/lab-03-dcgm/)
+- **GPU-Util y VRAM son ejes independientes:** 2.50 GB ocupados con 0 % de util → [Lab 3](labs/lab-03-dcgm/)
+
 ---
 
 ## Estado del roadmap
@@ -14,7 +21,7 @@ Roadmap práctico hacia **AI Infrastructure Engineer** con foco en orquestación
 |---|---|---|
 | **Fase 0** — Fundamentos de hardware | VRAM, Tensor Cores, HBM, cuantización | ✅ Completa |
 | **Certificación** | NVIDIA NCA-AIIO | ✅ Aprobada |
-| **Fase 1** — Orquestación y monitoreo | Device plugin, Time-Slicing, MPS, MIG, DCGM, Karpenter | 🟡 Casi completa |
+| **Fase 1** — Orquestación y monitoreo | Device plugin, Time-Slicing, MPS, DCGM (home lab) · MIG solo teoría (requiere A100/H100) · Karpenter queda para la fase en EKS | 🟡 Casi completa |
 | **Fase 2** — Inferencia cloud native | vLLM, KServe, KubeRay, Argo Workflows, MinIO | ⏳ Pendiente |
 | **Certificaciones finales** | AWS SA/DevOps Professional, CNCF Cloud Native AI | ⏳ Pendiente |
 

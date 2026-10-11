@@ -12,7 +12,7 @@ Cada error con síntoma, causa raíz y solución. Ordenados por lab.
 | 6 | 2 | Pods GPU fallan con `No such file or directory` | Faltaba la solicitud o el RuntimeClass; hacen falta ambos | Pod con `nvidia.com/gpu: 1` **y** `runtimeClassName: nvidia` |
 | 7 | 2 | Pod GPU: `exec: "nvidia-smi": executable file not found in $PATH` | El runtime inyecta `nvidia-smi` en un hook de prearranque; el `command` se resuelve contra el PATH de la imagen antes | Ruta absoluta `/usr/bin/nvidia-smi` o imagen CUDA |
 | 8 | 2 | Device plugin en `CrashLoopBackOff`: `config.yaml: no such file or directory` | ConfigMap con key `any` (convención Helm); el key es el filename montado | Key `config.yaml` |
-| 9 | 2 | `hog-2` muere con `CUDA out of memory` | Time-Slicing no aísla VRAM (comportamiento esperado) | Usar MIG si hace falta garantía de memoria |
+| 9 | 2 | `hog-2` muere con `CUDA out of memory` | Time-Slicing no aísla VRAM (comportamiento esperado) | Usar MIG si hace falta garantía de memoria, o MPS con réplicas calculadas sobre memoria usable (Lab 4) |
 | 10 | 3 | Métricas DCGM "no llegan" a Grafana | Caché del autocompletado de Grafana | Consultar la API de Prometheus directamente |
 | 11 | 3 | Sin métricas `DCGM_FI_PROF_*` | Restricción del segmento GeForce | Usar potencia y SM clock como proxy |
 | 12 | 4 | `hog-1` (2.2 GB) OOM con MPS `replicas: 2`: `1.96 GiB is free`; con Time-Slicing funcionaba | Tope por réplica = 4096/2 = 2048 MiB − ~42 MiB de contexto; la réplica vacía no presta memoria | Reservar por debajo del tope por réplica |
