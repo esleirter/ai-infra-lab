@@ -1,0 +1,15 @@
+runtimeClassName: nvidia
+gfd:
+  enabled: true        # instala GFD y también NFD como subchart
+config:
+  default: default
+  map:
+    default: |-
+      version: v1
+      flags:
+        migStrategy: none
+      sharing:
+        timeSlicing:
+          resources:
+          - name: nvidia.com/gpu
+            replicas: 4
