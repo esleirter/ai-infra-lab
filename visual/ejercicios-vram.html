@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ejercicios — Cálculo de VRAM para inferencia</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f0f13;
+    color: #e4e4e7;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    line-height: 1.65;
+    padding: 24px 16px 80px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  header { margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid #27272e; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #6b7280; font-weight: 600; margin-bottom: 10px;
+  }
+  h1 { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+  .sub { color: #9ca3af; margin-top: 12px; font-size: 15px; }
+
+  .level { margin: 48px 0 0; }
+  .level-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+  .level-num {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+    padding: 3px 9px; border-radius: 5px; white-space: nowrap;
+  }
+  .l1 { background: rgba(59,130,246,.15); color: #7dabf8; }
+  .l2 { background: rgba(45,212,191,.15); color: #5eead4; }
+  .l3 { background: rgba(168,139,250,.15); color: #c4b5fd; }
+  .l4 { background: rgba(251,146,60,.15); color: #fdba74; }
+  h2 { font-size: 21px; font-weight: 650; letter-spacing: -0.01em; }
+  .level-desc { color: #9ca3af; font-size: 14.5px; margin-bottom: 22px; }
+
+  .card {
+    background: #16161c; border: 1px solid #27272e;
+    border-radius: 10px; padding: 20px; margin-bottom: 16px;
+  }
+  .formula {
+    background: #101018; border-left: 3px solid #3b82f6;
+    padding: 16px 18px; border-radius: 0 8px 8px 0; margin-bottom: 22px;
+  }
+  .formula.teal { border-left-color: #2dd4bf; }
+  .formula.purple { border-left-color: #a78bfa; }
+  .formula.amber { border-left-color: #fb923c; }
+  .formula-label {
+    font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: #6b7280; font-weight: 600; margin-bottom: 10px;
+  }
+  code, .mono {
+    font-family: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 13.5px;
+  }
+  .formula code { color: #93c5fd; font-size: 15px; display: block; line-height: 1.9; }
+  .formula.teal code { color: #5eead4; }
+  .formula.purple code { color: #c4b5fd; }
+  .formula.amber code { color: #fdba74; }
+
+  .q-num {
+    font-size: 11.5px; font-weight: 700; color: #6b7280;
+    letter-spacing: .08em; margin-bottom: 8px;
+  }
+  .q-text { font-size: 15.5px; margin-bottom: 14px; }
+  .q-text b { color: #fff; font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; }
+  th { text-align: left; color: #6b7280; font-weight: 600; font-size: 11.5px;
+       text-transform: uppercase; letter-spacing: .06em; padding: 6px 10px 6px 0;
+       border-bottom: 1px solid #27272e; }
+  td { padding: 7px 10px 7px 0; border-bottom: 1px solid #1e1e26; }
+  td:last-child, th:last-child { text-align: right; padding-right: 0; }
+  .val { font-family: "SF Mono", Menlo, monospace; color: #e4e4e7; }
+
+  .answer-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+  input[type="text"] {
+    background: #0f0f13; border: 1px solid #33333d; color: #e4e4e7;
+    padding: 9px 12px; border-radius: 7px; font-size: 14.5px; width: 130px;
+    font-family: "SF Mono", Menlo, monospace;
+  }
+  input[type="text"]:focus { outline: 2px solid #3b82f6; outline-offset: 1px; border-color: transparent; }
+  .unit { color: #6b7280; font-size: 14px; }
+  button {
+    background: #27272e; color: #e4e4e7; border: 1px solid #3a3a44;
+    padding: 9px 16px; border-radius: 7px; font-size: 14px; cursor: pointer;
+    font-weight: 500; font-family: inherit;
+  }
+  button:hover { background: #32323c; }
+  button:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+  .btn-solve { background: transparent; color: #9ca3af; border-color: #2e2e38; }
+
+  .feedback { font-size: 14px; font-weight: 600; margin-left: 2px; }
+  .ok { color: #4ade80; }
+  .no { color: #f87171; }
+
+  .solution {
+    display: none; margin-top: 16px; padding: 16px 18px;
+    background: #101018; border-radius: 8px; border: 1px solid #252530;
+  }
+  .solution.show { display: block; }
+  .solution .step {
+    font-family: "SF Mono", Menlo, monospace; font-size: 13px;
+    color: #a1a1aa; line-height: 2; white-space: pre-wrap;
+  }
+  .solution .step em { color: #fff; font-style: normal; font-weight: 600; }
+  .solution .note { margin-top: 12px; font-size: 14px; color: #d4d4d8; padding-top: 12px; border-top: 1px solid #252530; }
+
+  .callout {
+    background: rgba(251,146,60,.07); border: 1px solid rgba(251,146,60,.25);
+    border-radius: 9px; padding: 16px 18px; margin: 22px 0; font-size: 14.5px;
+  }
+  .callout b { color: #fdba74; }
+  .callout.coral { background: rgba(248,113,113,.07); border-color: rgba(248,113,113,.25); }
+  .callout.coral b { color: #fca5a5; }
+
+  .closing {
+    margin-top: 56px; padding: 24px; border-radius: 12px;
+    background: linear-gradient(160deg, rgba(45,212,191,.09), rgba(59,130,246,.06));
+    border: 1px solid rgba(45,212,191,.22);
+  }
+  .closing h3 { font-size: 17px; margin-bottom: 12px; color: #5eead4; font-weight: 650; }
+  .closing p { font-size: 14.5px; color: #d4d4d8; margin-bottom: 10px; }
+  .closing p:last-child { margin-bottom: 0; }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 25px; }
+    .card { padding: 16px; }
+    input[type="text"] { width: 110px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Fase 0 · Fundamentos de hardware</div>
+  <h1>Cálculo de VRAM para inferencia</h1>
+  <p class="sub">Trece ejercicios progresivos. Primero los pesos, luego el KV cache, después el
+  presupuesto completo, y al final decisiones reales de infraestructura.
+  Escribe tu respuesta y compruébala antes de ver la solución.</p>
+</header>
+
+<!-- ============ NIVEL 1 ============ -->
+<section class="level">
+  <div class="level-head">
+    <span class="level-num l1">NIVEL 1</span>
+    <h2>Peso del modelo</h2>
+  </div>
+  <p class="level-desc">La parte fija. Solo depende de dos cosas: cuántos parámetros tiene y con
+  cuántos bytes guardas cada uno.</p>
+
+  <div class="formula">
+    <div class="formula-label">Fórmula</div>
+    <code>pesos = parámetros × bytes por parámetro</code>
+    <code style="color:#6b7280;font-size:13px;margin-top:8px">FP32 = 4  ·  FP16/BF16 = 2  ·  INT8 = 1  ·  INT4 = 0.5</code>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 1</div>
+    <p class="q-text">¿Cuánto pesan los parámetros de <b>Mistral-7B</b> en <b>FP16</b>?
+    Asume exactamente 7.000 millones de parámetros.</p>
+    <div class="answer-row">
+      <input type="text" id="i1" placeholder="0.0" inputmode="decimal">
+      <span class="unit">GB</span>
+      <button onclick="check('1',14,0.3)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('1')">Ver solución</button>
+      <span class="feedback" id="f1"></span>
+    </div>
+    <div class="solution" id="s1">
+      <div class="step">7,000,000,000 × 2 bytes = 14,000,000,000 bytes
+= <em>14 GB</em></div>
+      <div class="note">Regla mental: en FP16, los GB son <b>el doble</b> del número de "B" del nombre.
+      Un 7B pesa 14 GB, un 13B pesa 26 GB, un 70B pesa 140 GB.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 2</div>
+    <p class="q-text">Ese mismo Mistral-7B, cuantizado a <b>INT4</b>. ¿Cuánto pesa ahora?</p>
+    <div class="answer-row">
+      <input type="text" id="i2" placeholder="0.0" inputmode="decimal">
+      <span class="unit">GB</span>
+      <button onclick="check('2',3.5,0.2)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('2')">Ver solución</button>
+      <span class="feedback" id="f2"></span>
+    </div>
+    <div class="solution" id="s2">
+      <div class="step">7,000,000,000 × 0.5 bytes = 3,500,000,000 bytes
+= <em>3.5 GB</em></div>
+      <div class="note">De 14 GB a 3.5 GB: <b>una cuarta parte</b>. Un modelo que exigía una A100
+      ahora corre en una tarjeta de gama media. Ese es todo el argumento de la cuantización.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 3</div>
+    <p class="q-text">Tienes una <b>GTX 1650 SUPER (4 GB)</b>. ¿Cuál es el modelo más grande, en
+    miles de millones de parámetros, cuyos <b>pesos en FP16</b> caben en 3.5 GB?</p>
+    <div class="answer-row">
+      <input type="text" id="i3" placeholder="0.0" inputmode="decimal">
+      <span class="unit">B (miles de millones)</span>
+      <button onclick="check('3',1.75,0.2)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('3')">Ver solución</button>
+      <span class="feedback" id="f3"></span>
+    </div>
+    <div class="solution" id="s3">
+      <div class="step">Despejamos la fórmula:
+
+parámetros = bytes disponibles ÷ bytes por parámetro
+parámetros = 3,500,000,000 ÷ 2
+           = <em>1,750,000,000 ≈ 1.75B</em></div>
+      <div class="note">Y eso <b>solo los pesos</b>, sin dejar nada para KV cache ni overhead.
+      En la práctica el techo real está más cerca de 1.1B — que es justo por qué TinyLlama fue
+      la elección del lab.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 4</div>
+    <p class="q-text">Una <b>H100 SXM</b> tiene 80 GB de HBM3. ¿Cuántas copias de
+    <b>Llama-3-8B en FP16</b> podrías cargar, contando solo los pesos?</p>
+    <div class="answer-row">
+      <input type="text" id="i4" placeholder="0" inputmode="numeric">
+      <span class="unit">copias</span>
+      <button onclick="check('4',5,0)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('4')">Ver solución</button>
+      <span class="feedback" id="f4"></span>
+    </div>
+    <div class="solution" id="s4">
+      <div class="step">Pesos de un 8B en FP16:
+8,000,000,000 × 2 = 16 GB
+
+80 GB ÷ 16 GB = <em>5 copias</em></div>
+      <div class="note">Pero cargar 5 copias del mismo modelo casi nunca tiene sentido: dejarías
+      <b>cero memoria para KV cache</b> y no podrías atender ni un request. En la práctica se carga
+      una copia y el resto de los 80 GB se dedica a concurrencia.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NIVEL 2 ============ -->
+<section class="level">
+  <div class="level-head">
+    <span class="level-num l2">NIVEL 2</span>
+    <h2>KV cache</h2>
+  </div>
+  <p class="level-desc">La parte que crece. Es lo que decide cuántos usuarios simultáneos caben,
+  y casi nadie lo calcula.</p>
+
+  <div class="formula teal">
+    <div class="formula-label">Fórmula — por token</div>
+    <code>KV por token = 2 × capas × kv_heads × head_dim × bytes</code>
+    <code style="color:#6b7280;font-size:13px;margin-top:8px">el 2 es por Keys y Values · head_dim = hidden_size ÷ n_heads</code>
+  </div>
+  <div class="formula teal">
+    <div class="formula-label">Fórmula — total</div>
+    <code>KV total = KV por token × tokens × requests concurrentes</code>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 5 · leer el config.json</div>
+    <p class="q-text">Este es el <code>config.json</code> de <b>Llama-3-8B</b>. Calcula el
+    <b>head_dim</b>.</p>
+    <table>
+      <tr><td>num_hidden_layers</td><td class="val">32</td></tr>
+      <tr><td>num_attention_heads</td><td class="val">32</td></tr>
+      <tr><td>num_key_value_heads</td><td class="val">8</td></tr>
+      <tr><td>hidden_size</td><td class="val">4096</td></tr>
+    </table>
+    <div class="answer-row">
+      <input type="text" id="i5" placeholder="0" inputmode="numeric">
+      <button onclick="check('5',128,0)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('5')">Ver solución</button>
+      <span class="feedback" id="f5"></span>
+    </div>
+    <div class="solution" id="s5">
+      <div class="step">head_dim = hidden_size ÷ num_attention_heads
+head_dim = 4096 ÷ 32 = <em>128</em></div>
+      <div class="note">Ojo con cuál de los dos "heads" usas. Para el <b>head_dim</b> se divide
+      entre <code>num_attention_heads</code> (32). Pero para el <b>KV cache</b> se usa
+      <code>num_key_value_heads</code> (8). Confundirlos es el error más común.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 6</div>
+    <p class="q-text">Con esos datos, ¿cuánto ocupa <b>un token</b> de KV cache en Llama-3-8B
+    en FP16? Responde en KB.</p>
+    <div class="answer-row">
+      <input type="text" id="i6" placeholder="0" inputmode="decimal">
+      <span class="unit">KB</span>
+      <button onclick="check('6',128,4)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('6')">Ver solución</button>
+      <span class="feedback" id="f6"></span>
+    </div>
+    <div class="solution" id="s6">
+      <div class="step">2 × 32 capas × 8 kv_heads × 128 head_dim × 2 bytes
+
+= 2 × 32 × 8 × 128 × 2
+= 131,072 bytes
+= <em>128 KB por token</em></div>
+      <div class="note">Compara con TinyLlama: 22 KB por token. Llama-3-8B consume
+      <b>casi 6 veces más memoria por token</b>. Modelo más grande = más pesos <i>y</i> KV cache
+      más caro. El costo se dispara por los dos lados.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 7 · el efecto GQA</div>
+    <p class="q-text"><b>Llama-2-7B</b> usa MHA clásico: sus 32 capas tienen
+    <b>32 kv_heads</b> (no 8), head_dim 128. ¿Cuánto ocupa un token en FP16?</p>
+    <div class="answer-row">
+      <input type="text" id="i7" placeholder="0" inputmode="decimal">
+      <span class="unit">KB</span>
+      <button onclick="check('7',512,16)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('7')">Ver solución</button>
+      <span class="feedback" id="f7"></span>
+    </div>
+    <div class="solution" id="s7">
+      <div class="step">2 × 32 × 32 × 128 × 2 = 524,288 bytes
+= <em>512 KB por token</em></div>
+      <div class="note">Llama-2-7B: <b>512 KB</b>/token. Llama-3-8B: <b>128 KB</b>/token.
+      El modelo más nuevo es <i>más grande</i> y aun así consume <b>4 veces menos</b> KV cache,
+      solo por usar GQA. No mejora la calidad de las respuestas: mejora cuántos usuarios te caben
+      en la GPU. Que es exactamente tu métrica.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 8</div>
+    <p class="q-text">Sirves <b>Llama-3-8B</b> (128 KB/token) a <b>50 usuarios concurrentes</b>
+    con <b>4096 tokens</b> de contexto cada uno. ¿Cuánto KV cache necesitas?</p>
+    <div class="answer-row">
+      <input type="text" id="i8" placeholder="0" inputmode="decimal">
+      <span class="unit">GB</span>
+      <button onclick="check('8',26.2,1.5)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('8')">Ver solución</button>
+      <span class="feedback" id="f8"></span>
+    </div>
+    <div class="solution" id="s8">
+      <div class="step">128 KB × 4096 tokens × 50 usuarios
+= 26,214,400 KB
+= <em>≈ 26.2 GB</em></div>
+      <div class="note">Los pesos eran 16 GB. El KV cache es <b>26 GB</b>: más grande que el
+      modelo mismo. Por eso dimensionar solo por el tamaño del modelo lleva a comprar mal.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NIVEL 3 ============ -->
+<section class="level">
+  <div class="level-head">
+    <span class="level-num l3">NIVEL 3</span>
+    <h2>Presupuesto completo</h2>
+  </div>
+  <p class="level-desc">Ahora se junta todo: pesos + KV cache + overhead, contra la memoria real
+  de la tarjeta.</p>
+
+  <div class="formula purple">
+    <div class="formula-label">Fórmula</div>
+    <code>VRAM total = pesos + KV cache + overhead</code>
+    <code style="color:#6b7280;font-size:13px;margin-top:8px">overhead = contexto CUDA + fragmentación · presupuestar 300–500 MB</code>
+  </div>
+
+  <div class="callout">
+    <b>La VRAM nominal no es la disponible.</b> Una tarjeta de "4 GB" reporta 3.81 GiB útiles,
+    y encima hay que restar lo que consuma el escritorio si hay monitor conectado.
+    Siempre deja 10–15 % de margen: una GPU al 99 % de VRAM da OOM en el peor momento.
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 9</div>
+    <p class="q-text">Tu <b>GTX 1650 SUPER</b>. Datos medidos: 4096 MB totales, 260 MB de
+    escritorio, 54 MB de contexto CUDA, y TinyLlama en FP16 (2200 MB).
+    ¿Cuánta memoria queda para <b>KV cache</b>?</p>
+    <div class="answer-row">
+      <input type="text" id="i9" placeholder="0" inputmode="numeric">
+      <span class="unit">MB</span>
+      <button onclick="check('9',1582,60)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('9')">Ver solución</button>
+      <span class="feedback" id="f9"></span>
+    </div>
+    <div class="solution" id="s9">
+      <div class="step">4096 MB   total
+- 260 MB   escritorio (Xorg + cinnamon + navegador)
+-  54 MB   contexto CUDA
+-2200 MB   pesos del modelo
+─────────
+= <em>1582 MB para KV cache</em></div>
+      <div class="note">Estos son <b>tus números reales medidos</b>, no estimaciones.
+      Salen de comparar <code>nvidia-smi</code> con <code>torch.cuda.memory_allocated()</code>.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 10</div>
+    <p class="q-text">Con esos 1582 MB y TinyLlama a <b>22 KB/token</b>, ¿cuántos <b>usuarios
+    concurrentes</b> de 2048 tokens puedes atender?</p>
+    <div class="answer-row">
+      <input type="text" id="i10" placeholder="0" inputmode="numeric">
+      <span class="unit">usuarios</span>
+      <button onclick="check('10',35,4)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('10')">Ver solución</button>
+      <span class="feedback" id="f10"></span>
+    </div>
+    <div class="solution" id="s10">
+      <div class="step">Tokens totales que caben:
+1,582 MB ÷ 22 KB = 1,620,000 KB ÷ 22 KB ≈ 73,600 tokens
+
+Usuarios:
+73,600 ÷ 2048 tokens = <em>≈ 35 usuarios concurrentes</em></div>
+      <div class="note">Este es el número que de verdad importa en tu rol. No "tengo una GPU de
+      4 GB", sino <b>"esta GPU atiende 35 usuarios simultáneos con este modelo y este contexto"</b>.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 11</div>
+    <p class="q-text">Mismo hardware, mismo modelo, pero ahora el producto necesita
+    <b>8192 tokens</b> de contexto en lugar de 2048. ¿Cuántos usuarios concurrentes quedan?</p>
+    <div class="answer-row">
+      <input type="text" id="i11" placeholder="0" inputmode="numeric">
+      <span class="unit">usuarios</span>
+      <button onclick="check('11',9,2)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('11')">Ver solución</button>
+      <span class="feedback" id="f11"></span>
+    </div>
+    <div class="solution" id="s11">
+      <div class="step">73,600 tokens ÷ 8192 tokens = <em>≈ 9 usuarios</em></div>
+      <div class="note">De 35 a 9. <b>Cuadruplicar el contexto divide tu capacidad entre cuatro.</b>
+      Cuando producto pide "que acepte documentos más largos", eso es una decisión de
+      infraestructura con un costo directo y calculable. Ahora puedes ponerle número antes de
+      que se prometa al cliente.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NIVEL 4 ============ -->
+<section class="level">
+  <div class="level-head">
+    <span class="level-num l4">NIVEL 4</span>
+    <h2>Decisiones de infraestructura</h2>
+  </div>
+  <p class="level-desc">Los cálculos anteriores existen para responder preguntas como estas.</p>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 12 · ¿entra o no entra?</div>
+    <p class="q-text">Te piden servir <b>Llama-3-8B en FP16</b> (16 GB de pesos, 128 KB/token)
+    para <b>100 usuarios</b> con 4096 tokens de contexto. Presupuesta 1 GB de overhead.
+    ¿Cuánta VRAM total necesitas?</p>
+    <div class="answer-row">
+      <input type="text" id="i12" placeholder="0" inputmode="decimal">
+      <span class="unit">GB</span>
+      <button onclick="check('12',69.4,4)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('12')">Ver solución</button>
+      <span class="feedback" id="f12"></span>
+    </div>
+    <div class="solution" id="s12">
+      <div class="step">Pesos:      16.0 GB
+KV cache:   128 KB × 4096 × 100 = 52.4 GB
+Overhead:    1.0 GB
+─────────
+Total:     <em>≈ 69.4 GB</em></div>
+      <div class="note">No entra en una A10G (24 GB) ni en una L40S (48 GB).
+      <b>Necesitas una H100 de 80 GB</b> — y quedarías al 87 % de ocupación, sin margen.
+      La decisión real sería bajar a 50 usuarios por réplica y escalar horizontalmente, o
+      cuantizar a INT8.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q-num">EJERCICIO 13 · el costo de la precisión</div>
+    <p class="q-text">Mismo caso anterior, pero cuantizando los <b>pesos a INT8</b> (el KV cache
+    sigue en FP16). ¿Cuánta VRAM total necesitas ahora?</p>
+    <div class="answer-row">
+      <input type="text" id="i13" placeholder="0" inputmode="decimal">
+      <span class="unit">GB</span>
+      <button onclick="check('13',61.4,4)">Comprobar</button>
+      <button class="btn-solve" onclick="solve('13')">Ver solución</button>
+      <span class="feedback" id="f13"></span>
+    </div>
+    <div class="solution" id="s13">
+      <div class="step">Pesos INT8: 8,000,000,000 × 1 byte = 8.0 GB
+KV cache:   52.4 GB   (sin cambios)
+Overhead:    1.0 GB
+─────────
+Total:     <em>≈ 61.4 GB</em></div>
+      <div class="note">Ahorraste 8 GB, pero <b>seguirías necesitando la H100</b>.
+      Lección clave: <b>cuando el KV cache domina, cuantizar los pesos casi no ayuda</b>.
+      Lo que movería la aguja es reducir el contexto, cuantizar el <i>KV cache</i> a FP8,
+      o usar PagedAttention para no desperdiciar memoria en fragmentación.</div>
+    </div>
+  </div>
+
+  <div class="callout coral">
+    <b>El patrón que hay que retener:</b> en modelos pequeños con poca concurrencia dominan
+    los pesos. En modelos grandes con mucha concurrencia domina el KV cache.
+    Optimizar la parte equivocada es gastar esfuerzo sin mover el número que importa.
+  </div>
+</section>
+
+<div class="closing">
+  <h3>Por qué esto importa en tu rol</h3>
+  <p>Un AI Infrastructure Engineer no responde "¿qué GPU necesito?" mirando el tamaño del
+  modelo. Responde con un presupuesto: cuántos GB van a pesos, cuántos a KV cache, cuánto
+  margen queda, y cuántos requests concurrentes salen de ahí.</p>
+  <p>Ese cálculo es el que determina si eliges g5, g6 o p5 en Karpenter; cuántas réplicas
+  levanta KServe; y si el costo por millón de tokens cierra o no.</p>
+  <p><b>Objetivo permanente:</b> máximos requests concurrentes, mínimas GPUs, menor costo.</p>
+</div>
+
+</div>
+
+<script>
+function norm(v){ return parseFloat(String(v).replace(',','.').replace(/[^0-9.\-]/g,'')); }
+function check(id, expected, tol){
+  var el = document.getElementById('i'+id);
+  var fb = document.getElementById('f'+id);
+  var v = norm(el.value);
+  if (isNaN(v)) { fb.textContent = 'Escribe un número'; fb.className = 'feedback no'; return; }
+  if (Math.abs(v - expected) <= tol) {
+    fb.textContent = '✓ Correcto';
+    fb.className = 'feedback ok';
+  } else {
+    fb.textContent = '✗ Revisa el cálculo';
+    fb.className = 'feedback no';
+  }
+}
+function solve(id){
+  var s = document.getElementById('s'+id);
+  s.classList.toggle('show');
+}
+document.querySelectorAll('input[type=text]').forEach(function(inp){
+  inp.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') {
+      var btn = inp.parentElement.querySelector('button');
+      if (btn) btn.click();
+    }
+  });
+});
+</script>
+</body>
+</html>
