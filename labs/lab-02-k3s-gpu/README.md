@@ -87,6 +87,15 @@ kubectl -n kube-system patch daemonset nvidia-device-plugin-daemonset --type='js
 - `nvidia.com/gpu: 1` = **la solicitud**: el scheduler asigna y el plugin inyecta `NVIDIA_VISIBLE_DEVICES`.
 - `runtimeClassName: nvidia` = **quién ejecuta**: el runtime lee esa variable e inyecta el dispositivo.
 
+**Error 4 — `nvidia-smi` no está en el PATH.** Con RuntimeClass y recurso correctos, el pod falla al crear:
+```
+OCI runtime create failed: runc create failed:
+exec: "nvidia-smi": executable file not found in $PATH
+```
+El binario `nvidia-smi` lo inyecta el runtime NVIDIA en un hook de prearranque, pero el `command` del
+pod se resuelve contra el PATH de la imagen **antes** de ese hook.
+→ Usar ruta absoluta (`/usr/bin/nvidia-smi`) o, mejor, una imagen CUDA (lo que se haría en producción).
+
 Manifiesto: [`manifests/gpu-test.yaml`](manifests/gpu-test.yaml)
 
 **Opcional — `nvidia` como runtime por defecto.** k3s regenera `config.toml` en cada arranque, así que
@@ -99,8 +108,6 @@ sudo sed -i 's/default_runtime_name = "runc"/default_runtime_name = "nvidia"/' \
 sudo systemctl restart k3s
 ```
 > TODO: confirmar si se aplicó (`ls /var/lib/rancher/k3s/agent/etc/containerd/`).
-
-> TODO: documentar el cuarto error (está en `visual/lab2-k3s-gpu.html`).
 
 ---
 
