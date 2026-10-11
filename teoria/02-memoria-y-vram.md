@@ -53,7 +53,7 @@ Ataca el **ancho de banda**: una misma lectura de pesos sirve a N requests simul
 total sube mucho mientras la latencia por token individual casi no cambia.
 
 ## Por estudiar (Fase 2)
-> TODO: prefill vs decode, TTFT, TPOT/ITL, compute-bound vs memory-bound medido con vLLM (Lab 4).
+> TODO: prefill vs decode, TTFT, TPOT/ITL, compute-bound vs memory-bound medido con vLLM (Lab 5).
 
 ## Conexión con el objetivo
 Más requests concurrentes por GPU = más KV cache disponible y mejor reutilización de cada lectura de

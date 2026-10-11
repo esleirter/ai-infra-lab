@@ -1,6 +1,6 @@
 # 04 — Kubernetes y GPU
 
-**Fuentes:** sesiones del 4, 6 y 31 de agosto de 2026
+**Fuentes:** sesiones del 4, 6 y 31 de agosto y del 11 de octubre de 2026
 
 ## Las tres capas
 | Capa | Componentes |
@@ -39,7 +39,23 @@ componentes.
 
 ## NFD y GFD
 Node Feature Discovery y GPU Feature Discovery etiquetan los nodos con características del hardware.
-> TODO: completar tras instalarlos vía Helm.
+- **NFD** es el framework general de labels de hardware/kernel (pods `master` + `worker`).
+- **GFD** corre sobre NFD: consulta la GPU vía NVML y etiqueta el nodo. En el chart del device plugin
+  se activa con `gfd.enabled: true`, que instala también NFD como subchart.
+- Antes de GFD solo existían las labels manuales de k3s (`gpu=true`, `gpu.model=gtx1650super`).
+- MPS depende de GFD: el `mps-control-daemon` necesita la label `nvidia.com/mps.capable=true`.
+
+**Instalado en [Lab 4](../labs/lab-04-helm-mps/).** Labels destacadas en la GTX 1650 SUPER:
+
+| Label (`nvidia.com/`) | Valor | Nota |
+|---|---|---|
+| `gpu.count` | 1 | GPU física, aunque Allocatable diga 4 (réplicas) |
+| `gpu.product` | `NVIDIA-GeForce-GTX-1650-SUPER-SHARED` | Sufijo `-SHARED` por el sharing |
+| `gpu.sharing-strategy` / `gpu.replicas` | `time-slicing` / 4 → `mps` / 2 | Cambian con la config |
+| `gpu.compute.major` / `minor` · `gpu.family` | 7 / 5 · `turing` | |
+| `gpu.memory` | 4096 | MiB nominales |
+| `gpu.mode` | `graphics` | |
+| `mig.capable` · `mps.capable` | `false` · `false` → `true` con MPS | |
 
 ## EKS Hybrid Nodes
 Nodos on-prem unidos a un control plane de EKS. Cobro por vCPU-hora y restricciones de CNI.

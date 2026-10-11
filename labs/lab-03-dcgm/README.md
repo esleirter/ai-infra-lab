@@ -75,5 +75,5 @@ curl -s 'http://<prometheus>/api/v1/query?query=DCGM_FI_DEV_POWER_USAGE'
    no la generación.
 4. Ante un dato que "no aparece", consultar la API de la fuente antes que la UI.
 
-## Pendiente para Lab 4 (vLLM)
+## Pendiente para Lab 5 (vLLM)
 Ver `GPU-Util` alto con potencia oscilante durante decode memory-bound.

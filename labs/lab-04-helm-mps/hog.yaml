@@ -5,6 +5,8 @@ metadata:
 spec:
   runtimeClassName: nvidia
   restartPolicy: Never
+  # python corre como PID 1 y no maneja SIGTERM: sin esto el pod queda ~30 s en Terminating
+  terminationGracePeriodSeconds: 0
   containers:
   - name: hog
     image: pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime

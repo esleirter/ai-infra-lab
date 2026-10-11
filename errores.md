@@ -15,9 +15,13 @@ Cada error con síntoma, causa raíz y solución. Ordenados por lab.
 | 9 | 2 | `hog-2` muere con `CUDA out of memory` | Time-Slicing no aísla VRAM (comportamiento esperado) | Usar MIG si hace falta garantía de memoria |
 | 10 | 3 | Métricas DCGM "no llegan" a Grafana | Caché del autocompletado de Grafana | Consultar la API de Prometheus directamente |
 | 11 | 3 | Sin métricas `DCGM_FI_PROF_*` | Restricción del segmento GeForce | Usar potencia y SM clock como proxy |
+| 12 | 4 | `hog-1` (2.2 GB) OOM con MPS `replicas: 2`: `1.96 GiB is free`; con Time-Slicing funcionaba | Tope por réplica = 4096/2 = 2048 MiB − ~42 MiB de contexto; la réplica vacía no presta memoria | Reservar por debajo del tope por réplica |
+| 13 | 4 | `hog-2` (1.9 GB) OOM con `1.36 GiB is free`, dentro de su tope | Topes calculados sobre 4096 MiB nominales; el driver reserva ~380 MiB y el escritorio ~248 MiB. El cliente recibe el mínimo entre su tope y la memoria física libre | Calcular réplicas sobre memoria usable (3.63 GiB), no nominal |
+| 14 | 4 | Pods `hog` quedan ~30 s en `Terminating` | `python` es PID 1 y no maneja SIGTERM | `terminationGracePeriodSeconds: 0` en `hog.yaml` |
 
 ## Patrones
 - **Los mensajes de error despistan:** "did you configure the Container Toolkit?" cuando el toolkit
   estaba bien (#5).
 - **Verificar cómo se instaló algo antes de configurarlo** (#8).
 - **Ir a la fuente antes que a la UI** (#10).
+- **Los límites se calculan sobre valores nominales; la realidad es la memoria usable** (#13).
