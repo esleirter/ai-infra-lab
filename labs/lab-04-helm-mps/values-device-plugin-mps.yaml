@@ -1,0 +1,15 @@
+runtimeClassName: nvidia
+gfd:
+  enabled: true
+config:
+  default: default
+  map:
+    default: |-
+      version: v1
+      flags:
+        migStrategy: none
+      sharing:
+        mps:
+          resources:
+          - name: nvidia.com/gpu
+            replicas: 2
